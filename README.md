@@ -125,6 +125,7 @@ Con el codigo existente y habiendo desarrollado la modificacion anterior y viend
 
 ## Entregable
 Un documento donde se evidencia los resultados de las tres partes del taller, ademas de una breve explicacion de que genera el cambio que realizo en el ultimo punto.
+
 Ademas de dar una breve descripcion de como funcionan los bolts y los spout, para utilizar apache storm.
 
 ## Referencias
