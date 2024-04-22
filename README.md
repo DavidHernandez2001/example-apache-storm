@@ -1,50 +1,14 @@
-# Storm: Un framework de computacion distribuida orientado a stream de datos.
+# Apache storm
 
-## Introducción
+## Ejercicio: Contar palabras de un flujo interminable de frases
 
-Actualmente vivimos un crecimiento importante en lo que son los sistemas con grandes volúmenes de datos, los cuales están muchas veces desestructurados, o requieren de algún tipo de procesamientos específico para poder resolver un problema, o inferir un nuevo dato a partir de ellos.
-
-Big Data, Machine Learning, Business Intelligence, entre otros, son términos que nos empiezan a resultar más familiares, pero que también hacen que los sistemas que debemos construir tengan requerimientos más complejos, haciendo que las arquitecturas y tecnologías “tradicionales” no sean una solución eficaz para algunos problemas que podemos comenzar a encontrar.
-
-Bajo este abanico de tecnologías muchas veces no tenemos claro qué problema podemos atacar. Es bajo este contexto que en este artículo haremos una breve reseña sobre Storm, para entender qué hace, cómo lo hace y cómo se para con respecto a otros productos de similares características.
-
-## ¿Que es?
-
-Según su sitio Storm es un sistema de computación en tiempo real distribuido [1]. Si yo tuviera que definirlo, podría decir que es un sistema de procesamiento distribuido, orientado a ejecución de tareas paralelas, procesando los datos como flujos.
-
-Si buscamos por internet también podemos definirlo en función de cómo se compara con Hadoop (en el sitio marca algo como “Storm hace en tiempo real, lo que Hadoop hace en batch”), o con Spark, incluso Kafka. Esto se debe a que muchos problemas de los que atacan este tipo de frameworks son similares, o incluso se complementan para resolver problemas más complejos.
-
-## ¿Como lo hace?
-
-Para entender cómo Storm hace lo que dice debemos entender algunos conceptos como el de Topología.
-
-Una Topología es un grafo acíclico dirigido donde los nodos contienen alguna lógica de procesamiento. Se denominan a estos nodos Spouts cuando son los nodos iniciales de la topología, mientras que los nodos intermedios son denominados Bolts. Estos nodos se conecta a través de Streams por los que viajan las tupas que contienen los datos de la Topología. En la siguiente imagen los Spouts quedan representados por las canillas y los Bolts por las gotas, mientras que las flechas representan los Streams entre los nodos.
-
-![alt tag](http://storm.apache.org/images/storm-flow.png)
-
-Los Spouts representados por canillas son los nodos que producen los datos de la Topología, sea conectándose a una base de datos, tomando mensajes de una cola de mensajería, u obteniendo datos desde un servicio REST. Los Spouts emitirán las tuplas (tipo de dato a través de donde se envían los mensajes dentro de la Topología). Tambien pueden ejecutar de forma paralela entre sí y de manera distribuida.
-
-Los Bolts representados por gotas realizara algún procesamiento sobre las tuplas recibidas, emitiendo nuevas tuplas para la Topología. Estos también pueden ejecutar de forma paralela entre sí y distribuida.
-
-Todos estos nodos del grafo se conectan a través de Streams. Un Stream es una secuencia desordenada de tuplas emitidas y procesadas de manera paralela y distribuida.
-
-Estos Streams pueden agruparse para poder manipular como las tuplas son distribuidas entre las Tasks de un Bolt. Estas Tasks representan los hilos de ejecución de un Bolt dado definido por su nivel de paralelismo en la Topología, por lo que el agrupamiento de Streams define como las tuplas de un Stream viajan de un conjunto de Tasks a otro grupo de Tasks.
-
-Las Topologías se ejecutan a través de uno o más Workers los cuales representan una JVM que ejecuta una o más Tasks de la Topología. Storm intentará distribuir las Tasks entre los distintos Workers del sistema de la mejor forma posible según se lo configure.
-
-Todo esto no tiene tanto atractivo si no se garantiza al menos el procesamiento de todos los mensajes de la Topología, considerando un mensaje procesado cuando a recorrido todo el grafo de cómputo de la Topología según se haya definido.
-
-Storm garantiza esto a través de un mecanismo de confirmación de los mensajes, la definición de timeouts de mensaje y la manipulación de mensajes repetidos, pudiendo configurar todo este comportamiento en la Topología. Queda a criterio del lector profundizar el tema ya que existen muchas implementaciones y mecanismos para manipular el comportamiento de un Stream.
-
-## Ejemplo: Contar palabras de un flujo interminable de frases
-
-Se han manejado una cantidad importante de conceptos que pueden ser confusos, por lo que aplicaremos los conceptos anteriormente descritos en un ejemplo. En este repositorio encontraremos un ejemplo que pueden ejecutar [2].
+Se han manejado una cantidad importante de conceptos que pueden ser confusos, por lo que aplicaremos los conceptos anteriormente descritos en un ejemplo. En este repositorio encontraremos un ejemplo que pueden ejecutar.
 
 Para ejecutar este ejemplo solo necesitamos Java 1.8 o superior.
 
 Luego de haber clonado el repositorio podemos ejecutar la topología del ejemplo con el comando "./gradlew run".
 
-Antes de ejecutar entendamos un poco que va a realizar el ejemplo. En el ejemplo tenemos un Spout que genera frases simulando un flujo interminable de frases y luego una serie de Bolts que procesan dichas frases para contar las palabras de interés que se van produciendo en el flujo.
+Antes de ejecutar entendamos un poco que va a realizar el ejercicio. En el ejercico tenemos un Spout que genera frases simulando un flujo interminable de frases y luego una serie de Bolts que procesan dichas frases para contar las palabras de interés que se van produciendo en el flujo.
 
 Para realizar esto se crea un Spout que es el encargado de emitir las frases (SendPhrasesSpout), un Bolt que se encarga de tomar un frase y partirla es sus palabras (PhraseToWordsBolt), un Bolt que se encarga de normalizar las palabras pasándolas todas a minúsculas (ToLowerCaseBolt), otro Bolt que quita las palabras que no nos interesan contar (FilterWordsBolt) y un Bolt final que cuenta cada palabra (WordCountBolt). Esta topología queda definida en la clase main StormExampleMain como se muestra a continuación.
 
@@ -60,7 +24,7 @@ topologyBuilder.setBolt("WordCountBolt", new WordCountBolt(), 10).
 
 En este ejemplo se puede ver la definición de los Spouts y Bolts y el nivel de paralelismo definido en cada uno (cantidad de Tasks que lo ejecutan).
 
-Como se ve en el código de ejemplo cada Bolt se suscribe a un Spout o un Bolt para recibir las tuplas que estos emiten. En el código se ve como todos se conectan a través de shuffleGrouping, salvo el ultimo que se conecta a través de fieldGrouping donde además se especifica un campo word, esto refiere al agrupamiento de Streams. En los primeros casos no es importante para el procesamiento a que Task del Bolt va la tupla, pero al tener que contar las palabras necesitamos que una misma palabra valla a una misma task, para no tener un count en una task y otro count en otra task.
+Como se ve en el código del ejercicio cada Bolt se suscribe a un Spout o un Bolt para recibir las tuplas que estos emiten. En el código se ve como todos se conectan a través de shuffleGrouping, salvo el ultimo que se conecta a través de fieldGrouping donde además se especifica un campo word, esto refiere al agrupamiento de Streams. En los primeros casos no es importante para el procesamiento a que Task del Bolt va la tupla, pero al tener que contar las palabras necesitamos que una misma palabra valla a una misma task, para no tener un count en una task y otro count en otra task.
 
 Con el codigo anterior queda totalmente definida la topología, pero veamos ahora como es la definición de un Spout.
 
@@ -129,13 +93,39 @@ Pueden ver el resto de las definiciones de la topologia para entender mejor cóm
 
 Al ejecutar el ejemplo, se debe tener en cuenta que una topología no termina, por lo que va a quedar ejecutando interminablementa hasta que la detengamos.
 
-## Kafka, Spark, Hadoop, ¿Son lo mismo que Storm?
+### Modificacion ejercicio:
+Ahora que ya comprendemos como funciona Apache Storm, y tenemos claro como se puede ejecutar a traves de Java, vamos a modificar el ejercicio anterior para que cambiemosel generador de frases.
 
-No, pero están relacionados. Tanto Spark como Hadoop realizan paralelismo a nivel de procesamiento de datos, en cambio Storm realiza paralelismo a nivel de ejecución de tareas. Entre Spark y Storm existen “sabores” que realizan un trabajo muy similar.
+En la clase SendPhrasesSpout.java cambiamos el arreglo de string phrases por el siguiente:
 
-Spark Streaming y Storm Trident son casi productos equivalentes que difieren en el enfoque: Spark Streaming le da la posibilidad a éste de construir aplicaciones para procesar Streams de datos, creando microtransacciones de batches Spark. En tanto Storm Trident ayuda a la ejecución de Streams transaccionales muy parecidos a los Streams de Spark.
+```java
+private static final String[] phrases = {
+            "Puedo escribir los versos más tristes esta noche,",
+            "Escribir por ejemplo La noche está estrellada,",
+            "y tiritan azules los astros a lo lejos",
+            "Puedo escribir los versos más tristes esta noche",
+            "Yo la quise y a veces ella también me quiso",
+            "En las noches como ésta la tuve entre mis brazos",
+            "La besé tantas veces bajo el cielo infinito",
+            "Ella me quiso a veces yo también la quería",
+            "Cómo no haber amado sus grandes ojos fijos",
+            "Puedo escribir los versos más tristes esta noche",
+            "Piensa en mí que soy así, como te decía",
+            "La noche está estrellada y ella no está conmigo",
+            "Este es el último dolor que ella me causa",
+            "Y estos son los últimos versos que le escribo"
+    };
+```
 
-Kafka también se confunde con Storm por la similitud entre Stream y una cola distribuida. En verdad una cola distribuida es solo eso, no implica un procesamiento paralelo en sí. Muchas soluciones con Storm utilizan Kafka como fuentes de datos Spout para poder alimentar de manera paralela a la Topología Storm, el cual cuenta con Spouts para conexiones con Kafka y con otros motores de colas de mensajes.
+Luego de este cambio volvemos ejecutar el archivo y las palabras y cantidad que se generaron cambiaran, adjunte el contador que se genero en cada archivo en el informe del ejercicio.
+
+### Modificacion libre
+
+Con el codigo existente y habiendo desarrollado la modificacion anterior y viendo como el resultado cambia. Desarrolle ajustes al codigo, que modifiquen de alguna manera la salida que se tiene actualmente, un ejemplo de ello puede ser cambiar el conteo de palabras a frases con un conjunto de palabras pequeñas, esto para ver como se repiten dichas frases generadas en el spout.
+
+## Entregable
+Un documento donde se evidencia los resultados de las tres partes del taller, ademas de una breve explicacion de que genera el cambio que realizo en el ultimo punto.
+Ademas de dar una breve descripcion de como funcionan los bolts y los spout, para utilizar apache storm.
 
 ## Referencias
 
